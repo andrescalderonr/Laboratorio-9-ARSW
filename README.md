@@ -1,6 +1,11 @@
 ### Escuela Colombiana de Ingeniería
 ### Arquitecturas de Software - ARSW
 
+### Miembros:
+
+* Jose David Castillo
+* Andrés Felipe Calderón
+
 ## Escalamiento en Azure con Maquinas Virtuales, Sacale Sets y Service Plans
 
 ### Dependencias
@@ -24,6 +29,22 @@ Cuando un conjunto de usuarios consulta un enésimo número (superior a 1000000)
     * SSH publi key = Su llave ssh publica
 
 ![Imágen 1](images/part1/part1-vm-basic-config.png)
+
+### Procedimiento:
+
+Entramos al azure portal y buscamos el servicio de Virtual Machines:
+
+![Image](images/part1/VM1.png)
+
+Entramos al servicio, le damos click a Create y luego a Virtual Machine
+
+![](images/part1/CreateVM.png)
+
+Creamos un nuevo resource group de nombre SCALABILITY_LAB
+
+![](images/part1/CreateResource.png)
+
+
 
 2. Para conectarse a la VM use el siguiente comando, donde las `x` las debe remplazar por la IP de su propia VM (Revise la sección "Connect" de la virtual machine creada para tener una guía más detallada).
 
