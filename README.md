@@ -44,13 +44,51 @@ Creamos un nuevo resource group de nombre SCALABILITY_LAB
 
 ![](images/part1/CreateResource.png)
 
+Colocamos los datos necesarios:
 
+![](images/part1/VMname.png)
+
+![](images/part1/vm2.png)
+
+![](images/part1/vm3.png)
+
+![](images/part1/vmcreated.png)
 
 2. Para conectarse a la VM use el siguiente comando, donde las `x` las debe remplazar por la IP de su propia VM (Revise la sección "Connect" de la virtual machine creada para tener una guía más detallada).
 
     `ssh scalability_lab@xxx.xxx.xxx.xxx`
 
+En la sección de conectar esta a de nuestra maquina virtual:
+
+![](images/part1/connect.png)
+
+Usamos el siguiente comando en CMD:
+
+ssh -i "C:\Users\LENOVO\Downloads\Su-llave-ssh-publica.pem" scalability_lab@52.191.3.112
+
+![](images/part1/cmd.png)
+
 3. Instale node, para ello siga la sección *Installing Node.js and npm using NVM* que encontrará en este [enlace](https://linuxize.com/post/how-to-install-node-js-on-ubuntu-18.04/).
+
+Corremos este comando para instalar el nvm:
+
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
+
+![](images/part1/cmd2.png)
+
+Luego este comando para poder usar el nvm:
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+![](images/part1/cmd3.png)
+
+Para instalar Node usamos este comando: nvm install node
+
+![](images/part1/node.png)
+
+
 4. Para instalar la aplicación adjunta al Laboratorio, suba la carpeta `FibonacciApp` a un repositorio al cual tenga acceso y ejecute estos comandos dentro de la VM:
 
     `git clone <your_repo>`
@@ -59,29 +97,88 @@ Creamos un nuevo resource group de nombre SCALABILITY_LAB
 
     `npm install`
 
+Primero instalamos git en la maquina virtual:
+
+![](images/part1/gitcmd.png)
+
+Accedemos a nuestro repo y luego la app, luego instalamos las dependencias
+
+![](images/part1/app.png)
+
 5. Para ejecutar la aplicación puede usar el comando `npm FibinacciApp.js`, sin embargo una vez pierda la conexión ssh la aplicación dejará de funcionar. Para evitar ese compartamiento usaremos *forever*. Ejecute los siguientes comando dentro de la VM.
 
     ` node FibonacciApp.js`
+
+Instalamos forever y miramos si el comando funciona
+
+![](images/part1/FiboApp.png)
 
 6. Antes de verificar si el endpoint funciona, en Azure vaya a la sección de *Networking* y cree una *Inbound port rule* tal como se muestra en la imágen. Para verificar que la aplicación funciona, use un browser y user el endpoint `http://xxx.xxx.xxx.xxx:3000/fibonacci/6`. La respuesta debe ser `The answer is 8`.
 
 ![](images/part1/part1-vm-3000InboudRule.png)
 
+![](images/part1/port.png)
+
+![](images/part1/https.png)
+
 7. La función que calcula en enésimo número de la secuencia de Fibonacci está muy mal construido y consume bastante CPU para obtener la respuesta. Usando la consola del Browser documente los tiempos de respuesta para dicho endpoint usando los siguintes valores:
+   Usamos el siguiente comando:
+
+   console.time("fib");
+   fetch("http://52.191.3.112:3000/fibonacci/1000000")
+   .then(res => res.text())
+   .then(data => {
+   console.log(data);
+   console.timeEnd("fib");
+   });
+
+    Y vamos cambiando el final del link con cada uno de los valores que nos pidieron
+
     * 1000000
+   
+    ![](images/part1/71.png)
+
     * 1010000
+
+    ![](images/part1/72.png)
+
     * 1020000
+    
+    ![](images/part1/73.png)
+    
     * 1030000
+   
+    ![](images/part1/74.png)
+
     * 1040000
+
+    ![](images/part1/75.png)
+
     * 1050000
+
+    ![](images/part1/76.png)
+
     * 1060000
+
+    ![](images/part1/77.png)
+
     * 1070000
+
+    ![](images/part1/78.png)
+
     * 1080000
+
+    ![](images/part1/79.png)
+
     * 1090000    
+
+    ![](images/part1/710.png)
 
 8. Dírijase ahora a Azure y verifique el consumo de CPU para la VM. (Los resultados pueden tardar 5 minutos en aparecer).
 
 ![Imágen 2](images/part1/part1-vm-cpu.png)
+
+![](images/part1/CPU.png)
 
 9. Ahora usaremos Postman para simular una carga concurrente a nuestro sistema. Siga estos pasos.
     * Instale newman con el comando `npm install newman -g`. Para conocer más de Newman consulte el siguiente [enlace](https://learning.getpostman.com/docs/postman/collection-runs/command-line-integration-with-newman/).
