@@ -190,30 +190,148 @@ Instalamos forever y miramos si el comando funciona
     newman run ARSW_LOAD-BALANCING_AZURE.postman_collection.json -e [ARSW_LOAD-BALANCING_AZURE].postman_environment.json -n 10 &
     newman run ARSW_LOAD-BALANCING_AZURE.postman_collection.json -e [ARSW_LOAD-BALANCING_AZURE].postman_environment.json -n 10
     ```
+   
+Instalamos newman y entramos a la carpeta postman del repositorio Fibonacci:
+
+![](images/part1/Fibonacci.png)
+
+Editamos el archivo colocando nuestra IP:
+
+![](images/part1/JSON.png)
+
+Corremos el archivo:
+
+![](images/part1/comando.png)
+
+![](images/part1/paso9.png)
 
 10. La cantidad de CPU consumida es bastante grande y un conjunto considerable de peticiones concurrentes pueden hacer fallar nuestro servicio. Para solucionarlo usaremos una estrategia de Escalamiento Vertical. En Azure diríjase a la sección *size* y a continuación seleccione el tamaño `B2ms`.
 
 ![Imágen 3](images/part1/part1-vm-resize.png)
 
+1[](images/part1/size.png)
+
 11. Una vez el cambio se vea reflejado, repita el paso 7, 8 y 9.
+
+Paso 7:
+
+"http://52.191.3.112:3000/fibonacci/1000000" = fib: 7217.08203125 ms
+
+"http://52.191.3.112:3000/fibonacci/1010000" = fib: 7604.10107421875 ms
+
+"http://52.191.3.112:3000/fibonacci/1020000" = fib: 7672.085205078125 ms
+
+"http://52.191.3.112:3000/fibonacci/1030000" = fib: 8199.52197265625 ms
+
+"http://52.191.3.112:3000/fibonacci/1040000" = fib: 8307.5009765625 ms
+
+"http://52.191.3.112:3000/fibonacci/1050000" = fib: 8016.992919921875 ms
+
+"http://52.191.3.112:3000/fibonacci/1060000" = fib: 8152.70703125 ms
+
+"http://52.191.3.112:3000/fibonacci/1070000" = fib: 8277.339111328125 ms
+
+"http://52.191.3.112:3000/fibonacci/1080000" = fib: 8463.385986328125 ms
+
+"http://52.191.3.112:3000/fibonacci/1090000" = fib: 8750.07177734375 ms
+
+Paso 8:
+
+![](images/part1/step8.png)
+
+Paso 9:
+
+![](images/part1/step9.png)
+
+
 12. Evalue el escenario de calidad asociado al requerimiento no funcional de escalabilidad y concluya si usando este modelo de escalabilidad logramos cumplirlo.
+
+Si logramos cumplirlo debido aumentamos el tamaño de la maquina virtual, si logramos ejecutar el comando del paso 9 y que responda como debería, mientras que con el anterior tamaño este no era capaz de dar Ok en la respuesta.
+
 13. Vuelva a dejar la VM en el tamaño inicial para evitar cobros adicionales.
+
+Dejamos la maquina en B1ls
 
 **Preguntas**
 
 1. ¿Cuántos y cuáles recursos crea Azure junto con la VM?
+
+Se crean 8 elementos:
+
+* vnet-eastus (Red virtual)
+* VERTICAL_SCALABILITY (Máquina virtual)
+* vertical_scalability97 (Interfaz de red)
+* VERTICAL-SCABILITY-nsg (Grupo de seguridad de red)
+* VERTICAL-SCABILITY-ip (Dirección IP pública)
+* SCALABILITY_LAB (Grupo de recursos)
+* Su-llave-ssh-publica (Clave SSH)
+* VERTICAL-SCALABILITY_disk1_fbf3131d8acd48db99254f82d2dcd479 (Disco)
+
 2. ¿Brevemente describa para qué sirve cada recurso?
+
+vnet: Aisla y organiza los recursos de red.
+
+Maquina virtual: Ejecuta el sistema operativo y las aplicaciones.
+
+Interfaz de red: Conecta la maquina virtual a la red virtual.
+
+Grupo de seguridad de red: Controla el trafico en la red.
+
+Ip publica: Permite el acceso remoto.
+
+Grupo de recursos: Agrupa todos los recursos para ser administrados.
+
+Clave ssh: Permite la conección a la maquina virtual.
+
+Disco: Almacena el sistema operativo
+
 3. ¿Al cerrar la conexión ssh con la VM, por qué se cae la aplicación que ejecutamos con el comando `npm FibonacciApp.js`? ¿Por qué debemos crear un *Inbound port rule* antes de acceder al servicio?
+
+Al ejecutar el npm FibonacciApp.js, el proceso de Node.js se ejecuta en la misma sesión SSH, debido a esto, al momento de que se cierra la conexión,
+la sesión termina y también todos los procesos asociados a esa sesión SSH.
+
+El inbound port rule es lo que permite el tráfico externo hacia nuestro puerto 3000 que es donde corre nuestra aplicación.
+
 4. Adjunte tabla de tiempos e interprete por qué la función tarda tando tiempo.
+
+
+
 5. Adjunte imágen del consumo de CPU de la VM e interprete por qué la función consume esa cantidad de CPU.
+
+![](images/part1/CPU.png)
+
+Debido a que para este momento la aplicación no esta optimizada, esta consume una gran cantidad de CPU, alrededor de un 35 a 40 %, en espacial con valores grandes que ademas
+tardan mucha más en dar un resultado.
+
 6. Adjunte la imagen del resumen de la ejecución de Postman. Interprete:
     * Tiempos de ejecución de cada petición.
     * Si hubo fallos documentelos y explique.
+   
+Al inicio hubo fallos debido a que no había suficiente espacio en la máquina virtual para que estas pudieran ejecutarse de forma efectiva, al colocarle más espacio
+estas fueron capaces de ejecutarse sin problema alguno.
+
+![](images/part1/step9.png)
+
 7. ¿Cuál es la diferencia entre los tamaños `B2ms` y `B1ls` (no solo busque especificaciones de infraestructura)?
+
+
+
 8. ¿Aumentar el tamaño de la VM es una buena solución en este escenario?, ¿Qué pasa con la FibonacciApp cuando cambiamos el tamaño de la VM?
+
+
+
 9. ¿Qué pasa con la infraestructura cuando cambia el tamaño de la VM? ¿Qué efectos negativos implica?
+
+
+
 10. ¿Hubo mejora en el consumo de CPU o en los tiempos de respuesta? Si/No ¿Por qué?
+
+
+
 11. Aumente la cantidad de ejecuciones paralelas del comando de postman a `4`. ¿El comportamiento del sistema es porcentualmente mejor?
+
+
+
 
 ### Parte 2 - Escalabilidad horizontal
 
