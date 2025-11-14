@@ -394,21 +394,35 @@ Antes de continuar puede eliminar el grupo de recursos anterior para evitar gast
 
 ![](images/part2/part2-lb-create.png)
 
+Pruebas
+
+![](images/part2/balancer.jpg)
+![](images/part2/ip_balancer.jpg)
+
+
 2. A continuación cree un *Backend Pool*, guiese con la siguiente imágen.
 
 ![](images/part2/part2-lb-bp-create.png)
+actual
+![](images/part2/pool.jpg)
 
 3. A continuación cree un *Health Probe*, guiese con la siguiente imágen.
 
 ![](images/part2/part2-lb-hp-create.png)
+actual
+![](images/part2/health.jpg)
 
 4. A continuación cree un *Load Balancing Rule*, guiese con la siguiente imágen.
 
 ![](images/part2/part2-lb-lbr-create.png)
+actual
+![](images/part2/load_rule.jpg)
 
 5. Cree una *Virtual Network* dentro del grupo de recursos, guiese con la siguiente imágen.
 
 ![](images/part2/part2-vn-create.png)
+actual
+
 
 #### Crear las maquinas virtuales (Nodos)
 
@@ -417,18 +431,25 @@ Ahora vamos a crear 3 VMs (VM1, VM2 y VM3) con direcciones IP públicas standar 
 1. En la configuración básica de la VM guíese por la siguiente imágen. Es importante que se fije en la "Avaiability Zone", donde la VM1 será 1, la VM2 será 2 y la VM3 será 3.
 
 ![](images/part2/part2-vm-create1.png)
+confirmación de creación
+![](images/part2/vm.jpg)
 
 2. En la configuración de networking, verifique que se ha seleccionado la *Virtual Network*  y la *Subnet* creadas anteriormente. Adicionalmente asigne una IP pública y no olvide habilitar la redundancia de zona.
 
 ![](images/part2/part2-vm-create2.png)
+actual
+![](images/part2/network.jpg)
 
 3. Para el Network Security Group seleccione "avanzado" y realice la siguiente configuración. No olvide crear un *Inbound Rule*, en el cual habilite el tráfico por el puerto 3000. Cuando cree la VM2 y la VM3, no necesita volver a crear el *Network Security Group*, sino que puede seleccionar el anteriormente creado.
 
 ![](images/part2/part2-vm-create3.png)
+actual
+![](images/part2/security_group.jpg)
 
 4. Ahora asignaremos esta VM a nuestro balanceador de carga, para ello siga la configuración de la siguiente imágen.
 
 ![](images/part2/part2-vm-create4.png)
+
 
 5. Finalmente debemos instalar la aplicación de Fibonacci en la VM. para ello puede ejecutar el conjunto de los siguientes comandos, cambiando el nombre de la VM por el correcto
 
@@ -446,6 +467,10 @@ npm install forever -g
 forever start FibonacciApp.js
 ```
 
+![](images/part2/inst_1.jpg)
+![](images/part2/inst_2.jpg)
+
+
 Realice este proceso para las 3 VMs, por ahora lo haremos a mano una por una, sin embargo es importante que usted sepa que existen herramientas para aumatizar este proceso, entre ellas encontramos Azure Resource Manager, OsDisk Images, Terraform con Vagrant y Paker, Puppet, Ansible entre otras.
 
 #### Probar el resultado final de nuestra infraestructura
@@ -456,6 +481,7 @@ Realice este proceso para las 3 VMs, por ahora lo haremos a mano una por una, si
 http://52.155.223.248/
 http://52.155.223.248/fibonacci/1
 ```
+![](images/part2/prueba.jpg)
 
 2. Realice las pruebas de carga con `newman` que se realizaron en la parte 1 y haga un informe comparativo donde contraste: tiempos de respuesta, cantidad de peticiones respondidas con éxito, costos de las 2 infraestrucruras, es decir, la que desarrollamos con balanceo de carga horizontal y la que se hizo con una maquina virtual escalada.
 
@@ -487,18 +513,58 @@ newman run ARSW_LOAD-BALANCING_AZURE.postman_collection.json -e [ARSW_LOAD-BALAN
 newman run ARSW_LOAD-BALANCING_AZURE.postman_collection.json -e [ARSW_LOAD-BALANCING_AZURE].postman_environment.json -n 10
 ```
 
+En este caso debido a que azure no permite tener mas de 3 ips simultaneas esto no fue posible, los puntos anteriores fueron realizados usando solo 2 maquinas vm1 y vm2
+![](images/part2/limite_ip.jpg)
+
+
 **Preguntas**
 
 * ¿Cuáles son los tipos de balanceadores de carga en Azure y en qué se diferencian?, ¿Qué es SKU, qué tipos hay y en qué se diferencian?, ¿Por qué el balanceador de carga necesita una IP pública?
-* ¿Cuál es el propósito del *Backend Pool*?
+
+Azure Load Balancer tiene 2 tipos principales: Public Load Balancer el cual es publico y acepta peticiones de cualquier origen, por otro lado el Internal Load Balancer (ILB) es privado y no es accesible desde cualquir lugar
+
+SKU = Stock Keeping Unit, representa la “versión” o “tipo de producto” del Load Balancer. Azure tiene 2 tipos principales: Basic SKU el cual es gratis, no es seguro y no soporta zonas de disponibilidad, el Standard SKU no es gratis pero es seguro y tiene alta disponibilidad ademas de soportar diferentes zonas por esto mismo.
+
+Porque debe recibir tráfico desde Internet hacia las máquinas virtuales privadas.
+
+* ¿Cuál es el propósito del *Backend Pool*? 
+
+Es el grupo de máquinas virtuales que recibirán el tráfico redistribuido por el Load Balancer.
+
 * ¿Cuál es el propósito del *Health Probe*?
-* ¿Cuál es el propósito de la *Load Balancing Rule*? ¿Qué tipos de sesión persistente existen, por qué esto es importante y cómo puede afectar la escalabilidad del sistema?.
+
+El Health Probe verifica que cada VM del backend: este encendida, este respondiendo al puerto configurado (por ejemplo, 80 o 443) y está saludable. Por otro lado si una VM se cae el Load Balancer deja de enviarle tráfico. Esto garantiza alta disponibilidad.
+
+* ¿Cuál es el propósito de la *Load Balancing Rule*? ¿Qué tipos de sesión persistente existen?
+
+Define cómo se distribuye el tráfico entre las máquinas del Backend Pool. Hay 3 Tipos:None, Client IP y Client IP + Protocol.
+
+¿Por qué importa?
+
+Su razon de ser es cuando el usuario depende de información en la sesión y esta es usada, al usar estos metodos se garantiza que pueda usarse y no perderse debido a un cambio de vm.
+
+¿Cómo afecta la escalabilidad?
+
+Debido a que se reduce la distribución del tráfico ya que el usuario siempre esta en la misma vm esta misma se ve reducida.
+
 * ¿Qué es una *Virtual Network*? ¿Qué es una *Subnet*? ¿Para qué sirven los *address space* y *address range*?
+
+Es la red privada virtual donde viven las máquinas en Azure. La subnet es una división lógica dentro de la Virtual Network. El address space es todo el conjunto de ips disponibles en la red miestras que el range es solo un rango pequeño de este.
+
 * ¿Qué son las *Availability Zone* y por qué seleccionamos 3 diferentes zonas?. ¿Qué significa que una IP sea *zone-redundant*?
+
+La availability zone es un centros de datos físicamente separados dentro de la misma región Azure, se seleccionan 3 zonas diferentes para garantizar que si una zona falla, el servicio siga funcionando.
+
+Si la ip es zone-redundant significa que la IP pública:
+
+- No pertenece a una zona específica
+- Funciona aunque una zona falle
+- Es altamente disponible
+
+Lo cual es totalmente ideal para el caso de un load balancer que es indiferente a la zona
 * ¿Cuál es el propósito del *Network Security Group*?
-* Informe de newman 1 (Punto 2)
+Es un firewall interno que controla el trafico que entra y sae de la red. Se usa para proteger las maquinas virtuales.
+
 * Presente el Diagrama de Despliegue de la solución.
 
-
-
-
+![](/images/part2/img.png)
