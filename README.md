@@ -294,6 +294,39 @@ El inbound port rule es lo que permite el tráfico externo hacia nuestro puerto 
 
 4. Adjunte tabla de tiempos e interprete por qué la función tarda tando tiempo.
 
+La razon de la que porque puede taradar es debido a que la funcion fibonacci al llamar fib(n) la función llama a fib(n-1) y a fib(n-2) y estas llamadas crean
+mas llamadas, lo que va repitiendo los mismos calculos una y otra vez.
+
+B1ls:
+
+| Fibonacci(n) | Tiempo (ms) en B1ls |
+| ------------ | ------------------- |
+| 1,000,000    | 10,077.58 ms        |
+| 1,010,000    | 15,469.53 ms        |
+| 1,020,000    | 17,268.97 ms        |
+| 1,030,000    | 17,897.39 ms        |
+| 1,040,000    | 16,637.07 ms        |
+| 1,050,000    | 12,285.40 ms        |
+| 1,060,000    | 20,382.58 ms        |
+| 1,070,000    | 21,871.90 ms        |
+| 1,080,000    | 18,448.23 ms        |
+| 1,090,000    | 21,392.68 ms        |
+
+
+B2ms:
+
+| Fibonacci(n) | Tiempo (ms) |
+| ------------ | ----------- |
+| 1,000,000    | 7,217.08 ms |
+| 1,010,000    | 7,604.10 ms |
+| 1,020,000    | 7,672.08 ms |
+| 1,030,000    | 8,199.52 ms |
+| 1,040,000    | 8,307.50 ms |
+| 1,050,000    | 8,016.99 ms |
+| 1,060,000    | 8,152.70 ms |
+| 1,070,000    | 8,277.33 ms |
+| 1,080,000    | 8,463.38 ms |
+| 1,090,000    | 8,750.07 ms |
 
 
 5. Adjunte imágen del consumo de CPU de la VM e interprete por qué la función consume esa cantidad de CPU.
@@ -314,23 +347,41 @@ estas fueron capaces de ejecutarse sin problema alguno.
 
 7. ¿Cuál es la diferencia entre los tamaños `B2ms` y `B1ls` (no solo busque especificaciones de infraestructura)?
 
+| VM       | vCPU | RAM    | 
+| -------- | ---- | ------ | 
+| **B1ls** | 1    | 0.5 GB | 
+| **B2ms** | 2    | 8 GB   | 
 
+B1: Es una maquina virtual muy ligera la cual esta diseñada para cargas minimas que requieren muy pocos recursos. Tiene una cantidad muy reducidad de CPY y de memoria
+haciendo que sea recomendable para tareas cortas como scripts, servicios pequeños o usar aplicaciones que no consumna muchos recursos.
+
+B2: A diferencia del anterior esta es mucho mas robusta, teiene mas CPU y una cnatidad de memoria mas grande, lo que permite utilizar aplkicaciones que requieran de maás
+recursos.
 
 8. ¿Aumentar el tamaño de la VM es una buena solución en este escenario?, ¿Qué pasa con la FibonacciApp cuando cambiamos el tamaño de la VM?
 
-
+En este caso si fue buena idea, mejoro de forma notable el tiempo de respuesta con números grandes ademas de que se redujo la cantidad de CPU
 
 9. ¿Qué pasa con la infraestructura cuando cambia el tamaño de la VM? ¿Qué efectos negativos implica?
 
+El hardware fisico puede ser reasignado a otro host si el tamaño que se desea no esta disponible para este nodo, el hacer esto reinicia la VM, lo que dejara
+de ejecutarse por un tiempo en lo que se reasigna, tambien dependiendo del cambio, cosas como el costo, disco y cpu pueden cambiar, mantiene las Ips y configuraciones de 
+red.
 
+De efectos negativos esta que aumenta el costo en los creditos, se interrupen los servicios durante el cambio y al momento de distribuir los recursos pueden 
+tardar un buen tiempo.
 
 10. ¿Hubo mejora en el consumo de CPU o en los tiempos de respuesta? Si/No ¿Por qué?
 
+Si hubo mejoras en ambas, en el tiempo es mas pequeño ya era alrededor de 10 segundos, ahora el tiempo mas pequeño es de 7 segundos, y en la memoria se redujo alrededor de
+un 10%, antes hicilaba entre los 30 a 45%, luego cambio alrededor del 25%.
 
+La razon de esto es debido a que tenemos una mayor cantidad de recursos que puede utilizar la VM, lo que permite que sea mas rapido y pese menos.
 
 11. Aumente la cantidad de ejecuciones paralelas del comando de postman a `4`. ¿El comportamiento del sistema es porcentualmente mejor?
 
-
+No realmente debido que las 4 ejecuciones van a estar compitiendo para ocupar los recursos disponibles sin importar el tamaño de la VM, puede que mejore
+si hay muhcos recursos, pero en nuestro caso al tener pocos recursos no mejora mucho.
 
 
 ### Parte 2 - Escalabilidad horizontal
@@ -407,6 +458,25 @@ http://52.155.223.248/fibonacci/1
 ```
 
 2. Realice las pruebas de carga con `newman` que se realizaron en la parte 1 y haga un informe comparativo donde contraste: tiempos de respuesta, cantidad de peticiones respondidas con éxito, costos de las 2 infraestrucruras, es decir, la que desarrollamos con balanceo de carga horizontal y la que se hizo con una maquina virtual escalada.
+
+Primero colocamos la IP de la nueva VM en el archivo:
+
+![](images/part2/edit.png)
+
+Corremos el comando de la parte 1:
+
+![](images/part2/newman.png)
+
+| Métrica                      | Escalabilidad Horizontal | Escalabilidad Vertical | Ganador        |
+| ---------------------------- | ------------------------ | ---------------------- | -------------- |
+| Tiempo de respuesta promedio | **6.4s**                 | 7.5s                   | **Horizontal** |
+| Variabilidad (s.d.)          | 336 ms                   | **146 ms**             | Vertical       |
+| Peticiones exitosas          | 100%                     | 100%                   | Empate         |
+| Duración total               | **~1m 5s**               | ~1m 16s                | **Horizontal** |
+| Escalabilidad ante más carga | **Alta**                 | Baja                   | **Horizontal** |
+| Complejidad                  | Alta                     | **Baja**               | Vertical       |
+| Costo mensual estimado       | **Más alto**             | Más bajo               | Vertical       |
+
 
 3. Agregue una 4 maquina virtual y realice las pruebas de newman, pero esta vez no lance 2 peticiones en paralelo, sino que incrementelo a 4. Haga un informe donde presente el comportamiento de la CPU de las 4 VM y explique porque la tasa de éxito de las peticiones aumento con este estilo de escalabilidad.
 
